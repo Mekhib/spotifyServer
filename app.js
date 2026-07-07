@@ -4,7 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require("cors");
-var utils = require("./utils")
+var utils = require("./utils");
 var bodyParser = require("body-parser");
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
@@ -13,7 +13,8 @@ var globalRouter = require("./routes/global");
 
 var app = express();
 
-app.use(cors({
+// 1. DEFINE the options variable first
+const corsOptions = {
   origin: [
     'http://localhost:3000', 
     'https://spotify-server-ruby.vercel.app',
@@ -21,14 +22,15 @@ app.use(cors({
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true 
-}));
+};
 
+// 2. APPLY the options to the cors middleware
 app.use(cors(corsOptions));
 
+// 3. EXPLICITLY handle preflight requests using the same options
 app.options('*', cors(corsOptions));
 
-
-
+// Session configuration
 app.use(
   session({
     name: `spotifyUser`,
@@ -36,55 +38,25 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
-      maxAge: 1000 * 60 * 10, // 1 hour
+      secure: false, // Note: Set to true if you are enforcing HTTPS in production!
+      maxAge: 1000 * 60 * 10, // 10 minutes
     },
   })
 );
 
-// app.options("*", cors());
-
-app.use(function (req, res, next) {
-  req.headers.origin = req.headers.origin || req.headers.host;
-  console.log("req.header.orign", req.headers.origin)
-  next();
-});
-
-app.use(function (req, res, next) {
-  var origin = req.header('origin');
-  (console.log("origin",origin));
-  res.header("Access-Control-Allow-Origin", origin);
-  // res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS,DELETE,PUT");
-    res.header(
-      "Access-Control-Allow-Credentials",
-      "true"
-    );
-  res.header("Access-Control-Allow-Headers", "headers,method,withcredentials,content-type");
-  next();
-});
-
-// app.use(
-//   cors({
-//     origin: "http://localhost:3000",
-//     credentials: true,
-//   })
-// );
-
-
+// Standard Express parsers
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(logger('dev'));
-
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-
-app.use('/',indexRouter);
+// Routes
+app.use('/', indexRouter);
 app.use('/auth', authRouter);
-app.use("/user",  userRouter);
+app.use("/user", userRouter);
 app.use("/global", globalRouter);
 
 module.exports = app;
