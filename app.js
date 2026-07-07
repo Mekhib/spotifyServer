@@ -13,6 +13,15 @@ var globalRouter = require("./routes/global");
 
 var app = express();
 
+app.use(cors({
+  origin: [
+    'http://localhost:3000', 
+    'https://spotify-server-ruby.vercel.app' 
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true 
+}));
+
 app.use(
   session({
     name: `spotifyUser`,
