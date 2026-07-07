@@ -10,7 +10,7 @@ const SCOPE =
   const spotifyApi = new SpotifyWebApi({
     clientId: "e4fe20831fd44f7f9dca5cd597f58779",
     clientSecret: "60cf28fc74a44dbba8b6d91a69e4701f",
-    redirectUri: "http://localhost:3001/auth/authorize",
+    redirectUri: "https://super-spotify-backend.onrender.com/auth/authorize",
   });
 
      const createAuthURL = (scopes = SCOPE_LIST, state = "spotify-auth") => {
