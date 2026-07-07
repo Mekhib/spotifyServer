@@ -11,6 +11,8 @@ var authRouter = require('./routes/auth');
 var userRouter = require("./routes/user");
 var globalRouter = require("./routes/global");
 
+var app = express();
+
 app.use(cors({
   origin: [
     'http://localhost:3000', 
@@ -25,7 +27,7 @@ app.use(cors(corsOptions));
 
 app.options('*', cors(corsOptions));
 
-var app = express();
+
 
 app.use(
   session({
