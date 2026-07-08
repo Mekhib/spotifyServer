@@ -1,103 +1,98 @@
-var spotifyAuth = require("../api/global");
 var express = require("express");
-const SpotifyWebApi = require("spotify-web-api-node");
+var spotifyAuth = require("../api/global");
 const { sessionChecker } = require("../utils");
-const {topArtist, topTracks, userPlaylist, userRecentTracks, userTracks } = require("../api/user")
-const {
-  globalPlaylist,
-  globalAlbumPlaylist,
-  globalNewReleases,
-} = require("../api/global");
+
 var router = express.Router();
 const spotify = spotifyAuth.spotifyApi;
 
 
-router.post("/artists", sessionChecker, async (req, res) => {
-  const token = req.session?.token;
+router.use(sessionChecker, (req, res, next) => {
+  if (!req.session?.token) {
+    return res.status(401).json({ error: "Unauthorized. No session token found." });
+  }
+  // Inject the user's secure session token directly into the Spotify API client
+  spotify.setAccessToken(req.session.token);
+  next();
+});
+
+// GET /user/me
+router.get("/me", async (req, res) => {
   try {
-    const artists = await topArtist(token);
-    res.json({ artists });
+    const data = await spotify.getMe();
+    res.json(data.body);
   } catch (ex) {
-    res.status(500).json({ error: ex.message });
+    console.error("Error fetching user profile:", ex);
+    res.status(ex.statusCode || 500).json({ error: ex.message });
   }
 });
 
-router.post("/tracks", sessionChecker, async (req, res) => {
-  const token = req.session?.token;
+// GET /user/top-artists
+router.get("/top-artists", async (req, res) => {
   try {
-    const tracks = await topTracks(token);
-    res.json({ tracks });
+    const data = await spotify.getMyTopArtists();
+    res.json(data.body);
   } catch (ex) {
-    res.status(500).json({ error: ex.message });
+    console.error("Error fetching top artists:", ex);
+    res.status(ex.statusCode || 500).json({ error: ex.message });
   }
 });
 
-router.post("/playlist", sessionChecker, async (req, res) => {
-  const token = req.session?.token;
+// GET /user/top-tracks
+router.get("/top-tracks", async (req, res) => {
   try {
-    const playlist = await userPlaylist(token);
-    res.json({ playlist });
+    const data = await spotify.getMyTopTracks();
+    res.json(data.body);
   } catch (ex) {
-    res.status(500).json({ error: ex.message });
+    console.error("Error fetching top tracks:", ex);
+    res.status(ex.statusCode || 500).json({ error: ex.message });
   }
 });
 
-router.post("/top-songs", sessionChecker, async (req, res) => {
-  const token = req.session?.token;
+// GET /user/playlists
+router.get("/playlists", async (req, res) => {
   try {
-    const topSongs = await globalPlaylist(token);
-    res.json({ topSongs });
+    const data = await spotify.getUserPlaylists();
+    res.json(data.body);
   } catch (ex) {
-    res.status(500).json({ error: ex.message });
+    console.error("Error fetching user playlists:", ex);
+    res.status(ex.statusCode || 500).json({ error: ex.message });
   }
 });
 
-router.post("/top-albums", sessionChecker, async (req, res) => {
-  const token = req.session?.token;
+// GET /user/recent-tracks
+router.get("/recent-tracks", async (req, res) => {
+  const limit = parseInt(req.query.limit) || 10;
   try {
-    const topAlbums = await globalAlbumPlaylist(token);
-    console.log("TOP ALBUMS", topAlbums)
-    res.json({ topAlbums });
+    const data = await spotify.getMyRecentlyPlayedTracks({ limit });
+    res.json(data.body);
   } catch (ex) {
-    res.status(500).json({ error: ex.message });
+    console.error("Error fetching recent tracks:", ex);
+    res.status(ex.statusCode || 500).json({ error: ex.message });
   }
 });
 
-router.post("/new-releases", sessionChecker, async (req, res) => {
-  const token = req.session?.token;
+// GET /user/saved-tracks
+router.get("/saved-tracks", async (req, res) => {
+  const limit = parseInt(req.query.limit) || 50;
+  const offset = parseInt(req.query.offset) || 0;
   try {
-    const newReleases = await globalNewReleases(token);
-    res.json({ newReleases });
+    const data = await spotify.getMySavedTracks({ limit, offset });
+    res.json(data.body);
   } catch (ex) {
-    res.status(500).json({ error: ex.message });
+    console.error("Error fetching saved tracks:", ex);
+    res.status(ex.statusCode || 500).json({ error: ex.message });
   }
 });
 
-router.post("/getTracks", sessionChecker, async function (req, res, next) {
-  const { offset = 0, limit = 50 } = req.body;
-  try {
-    // Pass offset and limit to userTracks
-    const tracksData = await userTracks(req.session.token, offset, limit);
-    const recentTracks = await userRecentTracks(req.session.token);
-
-    res.json({
-      tracks: tracksData.items,
-      recentTracks: recentTracks.body.items,
-      total: tracksData.total,
-    });
-  } catch (ex) {
-    res.status(500).json({ error: ex.message });
-  }
-});
-
-router.post("/saved-albums", sessionChecker, async (req, res) => {
+// GET /user/saved-albums
+router.get("/saved-albums", async (req, res) => {
   try {
     const data = await spotify.getMySavedAlbums();
-    res.json({ items: data.body.items });
-  } catch (err) {
-    console.log("Something went wrong!", err);
-    res.status(500).json({ error: "Something went wrong!" });
+    res.json(data.body);
+  } catch (ex) {
+    console.error("Error fetching saved albums:", ex);
+    res.status(ex.statusCode || 500).json({ error: ex.message });
   }
 });
 
-module.exports = router
+module.exports = router;
