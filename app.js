@@ -30,16 +30,19 @@ app.use(cors(corsOptions));
 // 3. EXPLICITLY handle preflight requests using the same options
 app.options('*', cors(corsOptions));
 
-// Session configuration
+app.set("trust proxy", 1); 
+
 app.use(
   session({
-    name: `spotifyUser`,
-    secret: utils.hash,
+    secret: utils.hash, // Keep whatever secret you already have
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Note: Set to true if you are enforcing HTTPS in production!
-      maxAge: 1000 * 60 * 10, // 10 minutes
+      // 2. Dynamic cookie settings based on environment
+      secure: process.env.NODE_ENV === "production", // MUST be true on Render
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' required for cross-origin
+      httpOnly: true, // Prevents frontend XSS attacks
+      maxAge: 3600000, // 1 Hour
     },
   })
 );
