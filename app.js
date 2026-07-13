@@ -31,7 +31,7 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 app.set("trust proxy", 1); 
-
+const isProduction = process.env.NODE_ENV === "production" || process.env.RENDER === "true";
 app.use(
   session({
     secret: utils.hash, // Keep whatever secret you already have
