@@ -36,7 +36,7 @@ router.get('/authorize', async function (req, res, next) {
       req.session.expirationDate = expirationDate;
       req.session.save((err) => {
         if (err) console.error("Session save error:", err);
-        
+        console.log("Session After Save: ", req.session)
        
         const frontendUrl = process.env.NODE_ENV === 'production' 
           ? 'https://spotify-server-ruby.vercel.app/start' 
