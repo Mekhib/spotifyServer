@@ -31,7 +31,7 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 app.set("trust proxy", 1); 
-const isProduction = process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+// const isProduction = process.env.NODE_ENV === "production" || process.env.RENDER === "true";
 app.use(
   session({
     secret: utils.hash, // Keep whatever secret you already have
@@ -39,8 +39,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       // 2. Dynamic cookie settings based on environment
-      secure: process.env.NODE_ENV === "production", // MUST be true on Render
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' required for cross-origin
+      // secure: process.env.NODE_ENV === "production", 
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
       httpOnly: true, // Prevents frontend XSS attacks
       maxAge: 3600000, // 1 Hour
     },
