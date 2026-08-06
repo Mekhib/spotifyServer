@@ -1,6 +1,7 @@
 
 const SpotifyWebApi = require("spotify-web-api-node");
-const CLIENT_ID = "e4fe20831fd44f7f9dca5cd597f58779";
+const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 const RESPONSE_TYPE = "token";
 const SCOPE =
@@ -11,8 +12,8 @@ const redirectUri = process.env.NODE_ENV === "production"
   : "http://127.0.0.1:5000/auth/authorize";
 
   const spotifyApi = new SpotifyWebApi({
-    clientId: "e4fe20831fd44f7f9dca5cd597f58779",
-    clientSecret: "60cf28fc74a44dbba8b6d91a69e4701f",
+    clientId: CLIENT_ID,
+    clientSecret: CLIENT_SECRET,
     redirectUri: redirectUri,
   });
 
