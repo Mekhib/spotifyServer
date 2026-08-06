@@ -1,16 +1,19 @@
 
 const SpotifyWebApi = require("spotify-web-api-node");
 const CLIENT_ID = "e4fe20831fd44f7f9dca5cd597f58779";
-const REDIRECT_URI = "http://localhost:3000/auth";
 const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 const RESPONSE_TYPE = "token";
 const SCOPE =
   ["user-top-read user-read-private user-read-playback-state user-modify-playback-state user-read-recently-played user-library-read user-read-email"];
 
+const redirectUri = process.env.NODE_ENV === "production"
+  ? "https://spotifyserver-fehr.onrender.com/auth/authorize"
+  : "http://127.0.0.1:5000/auth/authorize";
+
   const spotifyApi = new SpotifyWebApi({
     clientId: "e4fe20831fd44f7f9dca5cd597f58779",
     clientSecret: "60cf28fc74a44dbba8b6d91a69e4701f",
-    redirectUri: "https://spotifyserver-fehr.onrender.com/auth/authorize",
+    redirectUri: redirectUri,
   });
 
      const createAuthURL = (scopes = SCOPE_LIST, state = "spotify-auth") => {
@@ -174,7 +177,6 @@ module.exports = {
   getAlbums,
   loggedIn,
   CLIENT_ID,
-  REDIRECT_URI,
   AUTH_ENDPOINT,
   RESPONSE_TYPE,
   SCOPE,

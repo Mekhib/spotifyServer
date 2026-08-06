@@ -1,22 +1,29 @@
 var express = require("express");
 var spotifyAuth = require("../api/global");
 const { sessionChecker } = require("../utils");
-const { getTracks, getArtistResults, searchAlbums } = require("../api/search");
+const { mockGlobalData } = require("../api/mockData");
 
 var router = express.Router();
 const spotify = spotifyAuth.spotifyApi;
 
-// ROUTER-LEVEL MIDDLEWARE: Validates session and pre-sets token for Spotify SDK
+// Middleware  
 router.use(sessionChecker, (req, res, next) => {
-  if (!req.session?.token) {
+  if (!req.session?.token && !req.session?.isDemo) {
     return res.status(401).json({ error: "Unauthorized. No session token found." });
   }
-  spotify.setAccessToken(req.session.token);
+  
+
+  if (!req.session?.isDemo) {
+    spotify.setAccessToken(req.session.token);
+  }
   next();
 });
 
-// GET /global/new-releases
 router.get("/new-releases", async (req, res) => {
+  if (req.session?.isDemo) {
+    return res.json(mockGlobalData.newReleases);
+  }
+
   try {
     const data = await spotify.getNewReleases();
     res.json(data.body);
@@ -26,14 +33,16 @@ router.get("/new-releases", async (req, res) => {
   }
 });
 
-// GET /global/playlist/:id 
 router.get("/playlist/:id", async (req, res) => {
+  if (req.session?.isDemo) {
+    return res.json(mockGlobalData.playlist);
+  }
+
   const playlistID = req.params.id;
   const limit = parseInt(req.query.limit) || undefined;
   const offset = parseInt(req.query.offset) || undefined;
 
   try {
-  
     const options = {};
     if (limit !== undefined) options.limit = limit;
     if (offset !== undefined) options.offset = offset;
@@ -46,8 +55,11 @@ router.get("/playlist/:id", async (req, res) => {
   }
 });
 
-// GET /global/album/:id
 router.get("/album/:id", async (req, res) => {
+  if (req.session?.isDemo) {
+    return res.json(mockGlobalData.album);
+  }
+
   const albumID = req.params.id;
   try {
     const data = await spotify.getAlbum(albumID);
@@ -58,11 +70,14 @@ router.get("/album/:id", async (req, res) => {
   }
 });
 
-
 router.get("/search", async (req, res) => {
   const { keyword } = req.query;
   if (!keyword) {
     return res.status(400).json({ error: "Search keyword parameter required" });
+  }
+
+  if (req.session?.isDemo) {
+    return res.json(mockGlobalData.search);
   }
 
   try {
@@ -84,12 +99,15 @@ router.get("/search", async (req, res) => {
 });
 
 router.get("/artist/:id", async (req, res) => {
+  if (req.session?.isDemo) {
+    return res.json(mockGlobalData.artistDetails);
+  }
+
   const artistID = req.params.id;
 
   let artist = null;
   let artistSongs = null;
   let artistAlbums = null;
-  let artistArtist = null;
 
   try {
     const data = await spotify.getArtist(artistID);
@@ -112,18 +130,10 @@ router.get("/artist/:id", async (req, res) => {
     console.error("Error retrieving artist albums:", ex.message);
   }
 
-  try {
-    const data = await spotify.getArtistRelatedArtists(artistID);
-    artistArtist = data.body;
-  } catch (ex) {
-    console.error("Error retrieving related artists:", ex.message);
-  }
-
   res.json({
     artist,
     artistSongs,
     artistAlbums,
-    artistArtist,
   });
 });
 

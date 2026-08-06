@@ -3,6 +3,30 @@ var express = require('express');
 const SpotifyWebApi = require("spotify-web-api-node");
 var router = express.Router();
 const spotify = spotifyAuth.spotifyApi
+const frontendUrl = process.env.NODE_ENV === 'production' 
+  ? 'https://spotify-server-ruby.vercel.app/start' 
+  : 'http://127.0.0.1:3000/start';
+
+router.get('/demo', function(req, res) {
+  req.session.token = "demo_access_token";
+  req.session.isDemo = true;
+  req.session.expirationDate = Date.now() + 3600000;
+
+  req.session.save((err) => {
+    if (err) {
+      console.error("Demo session save error:", err);
+      return res.status(500).json({ error: "Failed to initialize demo session" });
+    }
+    console.log("Demo Session Created Successfully:", req.sessionID);
+    
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      console.log("Demo session created, sending JSON response with redirect URL.");
+      return res.status(200).json({ success: true, isDemo: true, redirectUrl: frontendUrl });
+    }
+
+    return res.redirect(frontendUrl);
+  });
+});
 
 router.get('/signin', function(req, res, next) {
 
@@ -34,13 +58,12 @@ router.get('/authorize', async function (req, res, next) {
       const expirationDate = date.setDate(date.getHours() + 1);
       req.session.token = accessToken;
       req.session.expirationDate = expirationDate;
+
+      
       req.session.save((err) => {
         if (err) console.error("Session save error:", err);
         console.log("Session After Save: ", req.session)
-       
-        const frontendUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://spotify-server-ruby.vercel.app/start' 
-          : 'http://localhost:3000/start';
+      
 
         return res.redirect(frontendUrl);
       });

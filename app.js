@@ -10,13 +10,13 @@ var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var userRouter = require("./routes/user");
 var globalRouter = require("./routes/global");
+var playerRouter = require("./routes/player"); 
 
 var app = express();
 
-// 1. DEFINE the options variable first
 const corsOptions = {
   origin: [
-    'http://localhost:3000', 
+    'http://127.0.0.1:3000', 
     'https://spotify-server-ruby.vercel.app',
     'https://spotifyserver-fehr.onrender.com'
   ],
@@ -24,42 +24,46 @@ const corsOptions = {
   credentials: true 
 };
 
-// 2. APPLY the options to the cors middleware
-app.use(cors(corsOptions));
+// Standard Express parsers
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
-// 3. EXPLICITLY handle preflight requests using the same options
-app.options('*', cors(corsOptions));
-
-app.set("trust proxy", 1); 
-// const isProduction = process.env.NODE_ENV === "production" || process.env.RENDER === "true";
 app.use(
   session({
-    secret: utils.hash, // Keep whatever secret you already have
+    secret: utils.hash, 
     resave: false,
     saveUninitialized: false,
+    name: 'connect.sid', // Explicitly name the cookie
     cookie: {
-      // 2. Dynamic cookie settings based on environment
-      // secure: process.env.NODE_ENV === "production", 
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
-      httpOnly: true, // Prevents frontend XSS attacks
-      maxAge: 3600000, // 1 Hour
+      secure: false, // Must be false for local HTTP
+      httpOnly: true,
+      sameSite: 'lax', // 'lax' is usually best for local proxy setups
+      maxAge: 3600000,
     },
   })
 );
 
-// Standard Express parsers
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(logger('dev'));
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use((req, res, next) => {
+  console.log("--- DEBUG ---");
+  console.log("Request Path:", req.path);
+  console.log("Session ID:", req.sessionID);
+  console.log("Token exists:", !!req.session.token);
+  next();
+});
+
+app.set("trust proxy", 1); 
+
+app.options('*', cors(corsOptions));
 
 // Routes
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 app.use("/user", userRouter);
 app.use("/global", globalRouter);
+
+
+app.use("/player", playerRouter); 
 
 module.exports = app;
