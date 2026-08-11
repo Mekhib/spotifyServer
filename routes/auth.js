@@ -29,14 +29,19 @@ router.get('/demo', function(req, res) {
 });
 
 router.get('/signin', function(req, res, next) {
-
+  try {
     const url = spotify.createAuthorizeURL(
-      (scopes = spotifyAuth.SCOPE),
-      (state = "spotify-auth")
+      spotifyAuth.SCOPE,
+      "spotify-auth"
     );
-    console.log(url);
-    url ? res.json(url) : res.status(500)
-  
+    console.log("Redirecting to Spotify:", url);
+   
+    return res.redirect(url); 
+
+  } catch (error) {
+    console.error("Error generating authorization URL:", error);
+    return res.status(500).send("Failed to generate Spotify login URL");
+  }
 });
 
 router.get('/authorize', async function (req, res, next) {
