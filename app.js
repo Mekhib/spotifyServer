@@ -18,7 +18,8 @@ const corsOptions = {
   origin: [
     'http://127.0.0.1:3000', 
     'https://spotify-server-ruby.vercel.app',
-    'https://spotifyserver-fehr.onrender.com'
+    'https://spotifyserver-fehr.onrender.com',
+    'https://super-spotify-27q1kxjrh-mekhi19132-3917s-projects.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true 
