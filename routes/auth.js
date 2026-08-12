@@ -4,7 +4,7 @@ const SpotifyWebApi = require("spotify-web-api-node");
 var router = express.Router();
 const spotify = spotifyAuth.spotifyApi
 const frontendUrl = process.env.NODE_ENV === 'production' 
-  ? 'https://spotify-server-ruby.vercel.app/start' 
+  ? 'https://super-spotify-beta.vercel.app/start' 
   : 'http://127.0.0.1:3000/start';
 
 router.get('/demo', function(req, res) {
@@ -82,7 +82,7 @@ router.get('/authorize', async function (req, res, next) {
     
   
     const fallbackUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://spotify-server-ruby.vercel.app' 
+      ? 'https://super-spotify-beta.vercel.app' 
       : 'http://localhost:3000';
       
     return res.redirect(`${fallbackUrl}?error=auth_failed`);
